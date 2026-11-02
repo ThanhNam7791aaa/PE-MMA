@@ -10,6 +10,11 @@
     },
     "android": {
       "package": "com.anonymous.bookshelf"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "dfdf86ef-ea8c-46d9-b014-dc4ef9d1d098"
+      }
     }
   }
 }
