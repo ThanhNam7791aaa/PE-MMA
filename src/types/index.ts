@@ -1,32 +1,32 @@
-export type Genre = 'Fiction' | 'Non-Fiction' | 'Academic' | 'Other';
+export type Genre = 'Action' | 'Comedy' | 'Drama' | 'Horror';
 
-export type BookStatus = 'To Read' | 'Reading' | 'Finished';
+export type MovieStatus = 'Plan to Watch' | 'Watching' | 'Watched';
 
-export interface Book {
+export interface Movie {
   id: string;
   userId: string;
   title: string;
-  author: string;
+  director: string;
   genre: Genre;
-  status: BookStatus;
+  status: MovieStatus;
   rating?: number | null;
   favorite: boolean;
   notes?: string;
   createdAt?: any;
 }
 
-export interface BookFormData {
+export interface MovieFormData {
   title: string;
-  author: string;
+  director: string;
   genre: Genre | '';
-  status: BookStatus | '';
+  status: MovieStatus | '';
   rating?: string;
   notes?: string;
 }
 
 export interface FormErrors {
   title?: string;
-  author?: string;
+  director?: string;
   genre?: string;
   status?: string;
   rating?: string;
@@ -41,6 +41,5 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   List: undefined;
-  Detail: { bookId: string };
+  Detail: { movieId: string };
 };
-

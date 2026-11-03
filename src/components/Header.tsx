@@ -10,7 +10,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  title = 'BookShelf',
+  title = 'CineList',
   showAuthButtons = false,
   onLoginPress,
   onRegisterPress,

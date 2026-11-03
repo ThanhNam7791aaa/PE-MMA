@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "BookShelf",
+    "name": "CineList",
     "slug": "pe-mma",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,18 +9,12 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.anonymous.bookshelf"
+      "package": "com.anonymous.cinelist"
     },
     "extra": {
       "eas": {
         "projectId": "dfdf86ef-ea8c-46d9-b014-dc4ef9d1d098"
       }
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/dfdf86ef-ea8c-46d9-b014-dc4ef9d1d098"
     }
   }
 }

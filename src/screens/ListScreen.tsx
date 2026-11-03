@@ -10,42 +10,42 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, Book, Genre, BookStatus, BookFormData } from '../types';
+import { RootStackParamList, Movie, Genre, MovieStatus, MovieFormData } from '../types';
 import { Header } from '../components/Header';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Summary } from '../components/Summary';
 import { useAuth } from '../context/AuthContext';
 import {
-  subscribeUserBooks,
-  addBook,
-  toggleFavoriteBook,
-} from '../services/bookService';
+  subscribeUserMovies,
+  addMovie,
+  toggleFavoriteMovie,
+} from '../services/movieService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'List'>;
 
-const GENRES: Genre[] = ['Fiction', 'Non-Fiction', 'Academic', 'Other'];
-const STATUSES: BookStatus[] = ['To Read', 'Reading', 'Finished'];
+const GENRES: Genre[] = ['Action', 'Comedy', 'Drama', 'Horror'];
+const STATUSES: MovieStatus[] = ['Plan to Watch', 'Watching', 'Watched'];
 
 export const ListScreen: React.FC<Props> = ({ navigation }) => {
   const { user } = useAuth();
 
-  // Books state
-  const [books, setBooks] = useState<Book[]>([]);
+  // Movies state
+  const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Form state
   const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
+  const [director, setDirector] = useState('');
   const [genre, setGenre] = useState<Genre | ''>('');
-  const [status, setStatus] = useState<BookStatus | ''>('');
+  const [status, setStatus] = useState<MovieStatus | ''>('');
   const [rating, setRating] = useState('');
   const [notes, setNotes] = useState('');
 
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
-  const [bookSuccess, setBookSuccess] = useState('');
-  const [bookError, setBookError] = useState('');
+  const [movieSuccess, setMovieSuccess] = useState('');
+  const [movieError, setMovieError] = useState('');
 
   // Filter & Search state
   const [selectedGenreFilter, setSelectedGenreFilter] = useState<string>('All');
@@ -57,18 +57,18 @@ export const ListScreen: React.FC<Props> = ({ navigation }) => {
   const [genreDropdownOpen, setGenreDropdownOpen] = useState(false);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
 
-  // Subscribe to Firestore books
+  // Subscribe to Firestore movies
   useEffect(() => {
     if (!user) return;
     setLoading(true);
-    const unsubscribe = subscribeUserBooks(
+    const unsubscribe = subscribeUserMovies(
       user.uid,
-      (fetchedBooks) => {
-        setBooks(fetchedBooks);
+      (fetchedMovies) => {
+        setMovies(fetchedMovies);
         setLoading(false);
       },
       (err) => {
-        console.error('Error fetching books:', err);
+        console.error('Error fetching movies:', err);
         setLoading(false);
       }
     );
@@ -78,7 +78,7 @@ export const ListScreen: React.FC<Props> = ({ navigation }) => {
   // Form Validation logic
   const getFormErrors = (
     t: string,
-    a: string,
+    d: string,
     g: string,
     s: string,
     r: string,
@@ -93,11 +93,11 @@ export const ListScreen: React.FC<Props> = ({ navigation }) => {
       errs.title = 'Title must be at most 100 characters';
     }
 
-    // Author
-    if (!a.trim()) {
-      errs.author = 'Author is required';
-    } else if (a.length > 60) {
-      errs.author = 'Author must be at most 60 characters';
+    // Director
+    if (!d.trim()) {
+      errs.director = 'Director is required';
+    } else if (d.length > 60) {
+      errs.director = 'Director must be at most 60 characters';
     }
 
     // Genre
@@ -127,53 +127,53 @@ export const ListScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const formErrors = hasSubmittedForm
-    ? getFormErrors(title, author, genre, status, rating, notes)
+    ? getFormErrors(title, director, genre, status, rating, notes)
     : {};
 
-  // Handle Add Book
-  const handleAddBook = async () => {
+  // Handle Add Movie
+  const handleAddMovie = async () => {
     setHasSubmittedForm(true);
-    setBookSuccess('');
-    setBookError('');
+    setMovieSuccess('');
+    setMovieError('');
 
-    const errors = getFormErrors(title, author, genre, status, rating, notes);
+    const errors = getFormErrors(title, director, genre, status, rating, notes);
     if (Object.keys(errors).length > 0 || !user) {
       return;
     }
 
     setFormLoading(true);
     try {
-      const formData: BookFormData = {
+      const formData: MovieFormData = {
         title,
-        author,
+        director,
         genre,
         status,
         rating,
         notes,
       };
 
-      await addBook(user.uid, formData);
+      await addMovie(user.uid, formData);
 
       // Clear form
       setTitle('');
-      setAuthor('');
+      setDirector('');
       setGenre('');
       setStatus('');
       setRating('');
       setNotes('');
       setHasSubmittedForm(false);
-      setBookSuccess('Book added');
+      setMovieSuccess('Movie added');
     } catch (err: any) {
-      setBookError(err.message || 'Failed to add book');
+      setMovieError(err.message || 'Failed to add movie');
     } finally {
       setFormLoading(false);
     }
   };
 
   // Toggle favorite
-  const handleToggleFavorite = async (book: Book) => {
+  const handleToggleFavorite = async (movie: Movie) => {
     try {
-      await toggleFavoriteBook(book.id, book.favorite);
+      await toggleFavoriteMovie(movie.id, movie.favorite);
     } catch (err) {
       console.error('Error toggling favorite:', err);
     }
@@ -187,85 +187,85 @@ export const ListScreen: React.FC<Props> = ({ navigation }) => {
     setSearchQuery('');
   };
 
-  // Filtered and searched books
-  const filteredBooks = useMemo(() => {
-    return books.filter((book) => {
+  // Filtered and searched movies
+  const filteredMovies = useMemo(() => {
+    return movies.filter((movie) => {
       // Genre filter
-      if (selectedGenreFilter !== 'All' && book.genre !== selectedGenreFilter) {
+      if (selectedGenreFilter !== 'All' && movie.genre !== selectedGenreFilter) {
         return false;
       }
       // Status filter
-      if (selectedStatusFilter !== 'All' && book.status !== selectedStatusFilter) {
+      if (selectedStatusFilter !== 'All' && movie.status !== selectedStatusFilter) {
         return false;
       }
       // Favorites only
-      if (favoritesOnly && !book.favorite) {
+      if (favoritesOnly && !movie.favorite) {
         return false;
       }
       // Search query
       if (searchQuery.trim() !== '') {
         const query = searchQuery.trim().toLowerCase();
-        const matchTitle = book.title?.toLowerCase().includes(query);
-        const matchAuthor = book.author?.toLowerCase().includes(query);
-        if (!matchTitle && !matchAuthor) {
+        const matchTitle = movie.title?.toLowerCase().includes(query);
+        const matchDirector = movie.director?.toLowerCase().includes(query);
+        if (!matchTitle && !matchDirector) {
           return false;
         }
       }
       return true;
     });
-  }, [books, selectedGenreFilter, selectedStatusFilter, favoritesOnly, searchQuery]);
+  }, [movies, selectedGenreFilter, selectedStatusFilter, favoritesOnly, searchQuery]);
 
   return (
     <View style={styles.container} testID="list-screen">
-      <Header title="BookShelf" />
+      <Header title="CineList" />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* SECTION A: ADD BOOK FORM */}
-        <View style={styles.sectionContainer} testID="book-form">
-          <Text style={styles.sectionTitle}>Add a New Book</Text>
+        {/* SECTION A: ADD MOVIE FORM */}
+        <View style={styles.sectionContainer} testID="movie-form">
+          <Text style={styles.sectionTitle}>Add a New Movie</Text>
 
           {/* Success banner */}
-          {!!bookSuccess && (
+          {!!movieSuccess && (
             <View style={styles.successBanner}>
-              <Text style={styles.successText} testID="book-success">
-                {bookSuccess}
+              <Text style={styles.successText} testID="movie-success">
+                {movieSuccess}
               </Text>
             </View>
           )}
 
           {/* Error banner */}
-          {!!bookError && (
+          {!!movieError && (
             <View style={styles.errorBanner}>
-              <Text style={styles.errorText} testID="error-book">
-                {bookError}
+              <Text style={styles.errorText} testID="error-movie">
+                {movieError}
               </Text>
             </View>
           )}
 
           <Input
             label="Title *"
-            placeholder="Book title"
+            placeholder="Movie title"
             value={title}
             onChangeText={(text) => {
               setTitle(text);
-              setBookSuccess('');
-              setBookError('');
+              setMovieSuccess('');
+              setMovieError('');
             }}
             error={formErrors.title}
-            testID="book-title-input"
+            testID="movie-title-input"
           />
 
           <Input
-            label="Author *"
-            placeholder="Book author"
-            value={author}
+            label="Director *"
+            placeholder="Movie director"
+            value={director}
             onChangeText={(text) => {
-              setAuthor(text);
-              setBookSuccess('');
-              setBookError('');
+              setDirector(text);
+              setMovieSuccess('');
+              setMovieError('');
             }}
-            error={formErrors.author}
-            testID="book-author-input"
+            error={formErrors.director}
+            testID="movie-director-input"
           />
 
           {/* Genre Selection */}
@@ -369,11 +369,11 @@ export const ListScreen: React.FC<Props> = ({ navigation }) => {
             value={rating}
             onChangeText={(text) => {
               setRating(text);
-              setBookSuccess('');
-              setBookError('');
+              setMovieSuccess('');
+              setMovieError('');
             }}
             error={formErrors.rating}
-            testID="book-rating-input"
+            testID="movie-rating-input"
           />
 
           <Input
@@ -384,18 +384,18 @@ export const ListScreen: React.FC<Props> = ({ navigation }) => {
             value={notes}
             onChangeText={(text) => {
               setNotes(text);
-              setBookSuccess('');
-              setBookError('');
+              setMovieSuccess('');
+              setMovieError('');
             }}
             error={formErrors.notes}
-            testID="book-notes-input"
+            testID="movie-notes-input"
           />
 
           <Button
-            title="Add Book"
-            onPress={handleAddBook}
+            title="Add Movie"
+            onPress={handleAddMovie}
             loading={formLoading}
-            testID="book-submit-button"
+            testID="movie-submit-button"
           />
         </View>
 
@@ -406,7 +406,7 @@ export const ListScreen: React.FC<Props> = ({ navigation }) => {
           {/* Search box */}
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by title or author..."
+            placeholder="Search by title or director..."
             placeholderTextColor="#888"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -484,53 +484,53 @@ export const ListScreen: React.FC<Props> = ({ navigation }) => {
           />
 
           {/* Summary */}
-          <Summary books={filteredBooks} />
+          <Summary movies={filteredMovies} />
         </View>
 
         {/* SECTION B: THE LIST */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Your Books</Text>
+          <Text style={styles.sectionTitle}>Your Movies</Text>
 
           {loading ? (
             <ActivityIndicator size="large" color="#007AFF" style={{ marginVertical: 20 }} />
-          ) : filteredBooks.length === 0 ? (
-            <View style={styles.emptyContainer} testID="books-empty">
-              <Text style={styles.emptyText}>No books found</Text>
+          ) : filteredMovies.length === 0 ? (
+            <View style={styles.emptyContainer} testID="movies-empty">
+              <Text style={styles.emptyText}>No movies found</Text>
             </View>
           ) : (
-            filteredBooks.map((book) => (
+            filteredMovies.map((movie) => (
               <TouchableOpacity
-                key={book.id}
-                style={styles.bookCard}
-                testID="book-item"
-                onPress={() => navigation.navigate('Detail', { bookId: book.id })}
+                key={movie.id}
+                style={styles.movieCard}
+                testID="movie-item"
+                onPress={() => navigation.navigate('Detail', { movieId: movie.id })}
                 activeOpacity={0.7}
               >
-                <View style={styles.bookHeader}>
-                  <Text style={styles.bookTitle}>{book.title}</Text>
+                <View style={styles.movieHeader}>
+                  <Text style={styles.movieTitle}>{movie.title}</Text>
                   <TouchableOpacity
-                    onPress={() => handleToggleFavorite(book)}
+                    onPress={() => handleToggleFavorite(movie)}
                     style={styles.favoriteButton}
-                    testID={`favorite-toggle-${book.id}`}
+                    testID={`favorite-toggle-${movie.id}`}
                   >
                     <Text style={styles.starIcon}>
-                      {book.favorite ? '★' : '☆'}
+                      {movie.favorite ? '★' : '☆'}
                     </Text>
                   </TouchableOpacity>
                 </View>
 
-                <Text style={styles.bookAuthor}>by {book.author}</Text>
+                <Text style={styles.movieDirector}>Directed by {movie.director}</Text>
 
                 <View style={styles.badgeRow}>
                   <View style={styles.genreBadge}>
-                    <Text style={styles.genreBadgeText}>{book.genre}</Text>
+                    <Text style={styles.genreBadgeText}>{movie.genre}</Text>
                   </View>
                   <View style={styles.statusBadge}>
-                    <Text style={styles.statusBadgeText}>{book.status}</Text>
+                    <Text style={styles.statusBadgeText}>{movie.status}</Text>
                   </View>
-                  {book.rating !== null && book.rating !== undefined && (
+                  {movie.rating !== null && movie.rating !== undefined && (
                     <View style={styles.ratingBadge}>
-                      <Text style={styles.ratingBadgeText}>★ {book.rating}/5</Text>
+                      <Text style={styles.ratingBadgeText}>★ {movie.rating}/5</Text>
                     </View>
                   )}
                 </View>
@@ -705,7 +705,7 @@ const styles = StyleSheet.create({
     color: '#888',
     fontStyle: 'italic',
   },
-  bookCard: {
+  movieCard: {
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#e9ecef',
@@ -713,19 +713,19 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 10,
   },
-  bookHeader: {
+  movieHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  bookTitle: {
+  movieTitle: {
     fontSize: 17,
     fontWeight: 'bold',
     color: '#212529',
     flex: 1,
     marginRight: 10,
   },
-  bookAuthor: {
+  movieDirector: {
     fontSize: 14,
     color: '#6c757d',
     marginTop: 2,
@@ -777,4 +777,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-

@@ -9,36 +9,36 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, Book, Genre, BookStatus, BookFormData } from '../types';
+import { RootStackParamList, Movie, Genre, MovieStatus, MovieFormData } from '../types';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import {
-  updateBook,
-  deleteBook,
-  toggleFavoriteBook,
-} from '../services/bookService';
+  updateMovie,
+  deleteMovie,
+  toggleFavoriteMovie,
+} from '../services/movieService';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Detail'>;
 
-const GENRES: Genre[] = ['Fiction', 'Non-Fiction', 'Academic', 'Other'];
-const STATUSES: BookStatus[] = ['To Read', 'Reading', 'Finished'];
+const GENRES: Genre[] = ['Action', 'Comedy', 'Drama', 'Horror'];
+const STATUSES: MovieStatus[] = ['Plan to Watch', 'Watching', 'Watched'];
 
 export const DetailScreen: React.FC<Props> = ({ route, navigation }) => {
-  const { bookId } = route.params;
+  const { movieId } = route.params;
   const { user } = useAuth();
 
-  const [book, setBook] = useState<Book | null>(null);
+  const [movie, setMovie] = useState<Movie | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
-  const [editAuthor, setEditAuthor] = useState('');
+  const [editDirector, setEditDirector] = useState('');
   const [editGenre, setEditGenre] = useState<Genre | ''>('');
-  const [editStatus, setEditStatus] = useState<BookStatus | ''>('');
+  const [editStatus, setEditStatus] = useState<MovieStatus | ''>('');
   const [editRating, setEditRating] = useState('');
   const [editNotes, setEditNotes] = useState('');
 
@@ -50,39 +50,39 @@ export const DetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const [genreDropdownOpen, setGenreDropdownOpen] = useState(false);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
 
-  // Subscribe to book document
+  // Subscribe to movie document
   useEffect(() => {
-    const docRef = doc(db, 'books', bookId);
+    const docRef = doc(db, 'movies', movieId);
     const unsubscribe = onSnapshot(docRef, (docSnap: any) => {
       if (docSnap.exists()) {
-        const data = docSnap.data() as Omit<Book, 'id'>;
-        const currentBook: Book = {
+        const data = docSnap.data() as Omit<Movie, 'id'>;
+        const currentMovie: Movie = {
           id: docSnap.id,
           ...data,
         };
-        setBook(currentBook);
+        setMovie(currentMovie);
         // Sync edit inputs if not currently editing
         if (!isEditing) {
-          setEditTitle(currentBook.title || '');
-          setEditAuthor(currentBook.author || '');
-          setEditGenre(currentBook.genre || '');
-          setEditStatus(currentBook.status || '');
-          setEditRating(currentBook.rating !== null && currentBook.rating !== undefined ? String(currentBook.rating) : '');
-          setEditNotes(currentBook.notes || '');
+          setEditTitle(currentMovie.title || '');
+          setEditDirector(currentMovie.director || '');
+          setEditGenre(currentMovie.genre || '');
+          setEditStatus(currentMovie.status || '');
+          setEditRating(currentMovie.rating !== null && currentMovie.rating !== undefined ? String(currentMovie.rating) : '');
+          setEditNotes(currentMovie.notes || '');
         }
       } else {
-        // Book was deleted
-        setBook(null);
+        // Movie was deleted
+        setMovie(null);
       }
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [bookId, isEditing]);
+  }, [movieId, isEditing]);
 
   const getEditErrors = (
     t: string,
-    a: string,
+    d: string,
     g: string,
     s: string,
     r: string,
@@ -96,10 +96,10 @@ export const DetailScreen: React.FC<Props> = ({ route, navigation }) => {
       errs.title = 'Title must be at most 100 characters';
     }
 
-    if (!a.trim()) {
-      errs.author = 'Author is required';
-    } else if (a.length > 60) {
-      errs.author = 'Author must be at most 60 characters';
+    if (!d.trim()) {
+      errs.director = 'Director is required';
+    } else if (d.length > 60) {
+      errs.director = 'Director must be at most 60 characters';
     }
 
     if (!g) {
@@ -125,26 +125,26 @@ export const DetailScreen: React.FC<Props> = ({ route, navigation }) => {
   };
 
   const editErrors = hasSubmittedEdit
-    ? getEditErrors(editTitle, editAuthor, editGenre, editStatus, editRating, editNotes)
+    ? getEditErrors(editTitle, editDirector, editGenre, editStatus, editRating, editNotes)
     : {};
 
   const handleToggleFavorite = async () => {
-    if (!book) return;
+    if (!movie) return;
     try {
-      await toggleFavoriteBook(book.id, book.favorite);
+      await toggleFavoriteMovie(movie.id, movie.favorite);
     } catch (err) {
       console.error('Error toggling favorite:', err);
     }
   };
 
   const handleStartEdit = () => {
-    if (!book) return;
-    setEditTitle(book.title || '');
-    setEditAuthor(book.author || '');
-    setEditGenre(book.genre || '');
-    setEditStatus(book.status || '');
-    setEditRating(book.rating !== null && book.rating !== undefined ? String(book.rating) : '');
-    setEditNotes(book.notes || '');
+    if (!movie) return;
+    setEditTitle(movie.title || '');
+    setEditDirector(movie.director || '');
+    setEditGenre(movie.genre || '');
+    setEditStatus(movie.status || '');
+    setEditRating(movie.rating !== null && movie.rating !== undefined ? String(movie.rating) : '');
+    setEditNotes(movie.notes || '');
     setHasSubmittedEdit(false);
     setErrorMessage('');
     setIsEditing(true);
@@ -160,38 +160,38 @@ export const DetailScreen: React.FC<Props> = ({ route, navigation }) => {
     setHasSubmittedEdit(true);
     setErrorMessage('');
 
-    const errors = getEditErrors(editTitle, editAuthor, editGenre, editStatus, editRating, editNotes);
-    if (Object.keys(errors).length > 0 || !user || !book) {
+    const errors = getEditErrors(editTitle, editDirector, editGenre, editStatus, editRating, editNotes);
+    if (Object.keys(errors).length > 0 || !user || !movie) {
       return;
     }
 
     setSaveLoading(true);
     try {
-      const formData: BookFormData = {
+      const formData: MovieFormData = {
         title: editTitle,
-        author: editAuthor,
+        director: editDirector,
         genre: editGenre,
         status: editStatus,
         rating: editRating,
         notes: editNotes,
       };
 
-      await updateBook(book.id, user.uid, formData);
+      await updateMovie(movie.id, user.uid, formData);
       setIsEditing(false);
       setHasSubmittedEdit(false);
     } catch (err: any) {
-      setErrorMessage(err.message || 'Failed to update book');
+      setErrorMessage(err.message || 'Failed to update movie');
     } finally {
       setSaveLoading(false);
     }
   };
 
   const handleDelete = () => {
-    if (!book) return;
+    if (!movie) return;
 
     Alert.alert(
       'Confirm Delete',
-      `Are you sure you want to delete "${book.title}"?`,
+      `Are you sure you want to delete "${movie.title}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -199,10 +199,10 @@ export const DetailScreen: React.FC<Props> = ({ route, navigation }) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteBook(book.id);
+              await deleteMovie(movie.id);
               navigation.goBack();
             } catch (err) {
-              console.error('Error deleting book:', err);
+              console.error('Error deleting movie:', err);
             }
           },
         },
@@ -218,10 +218,10 @@ export const DetailScreen: React.FC<Props> = ({ route, navigation }) => {
     );
   }
 
-  if (!book) {
+  if (!movie) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.notFoundText}>Book not found.</Text>
+        <Text style={styles.notFoundText}>Movie not found.</Text>
         <Button title="Back to List" onPress={() => navigation.goBack()} />
       </View>
     );
@@ -232,7 +232,7 @@ export const DetailScreen: React.FC<Props> = ({ route, navigation }) => {
       {/* EDIT MODE */}
       {isEditing ? (
         <View style={styles.card}>
-          <Text style={styles.screenTitle}>Edit Book</Text>
+          <Text style={styles.screenTitle}>Edit Movie</Text>
 
           {!!errorMessage && (
             <View style={styles.errorBanner}>
@@ -252,14 +252,14 @@ export const DetailScreen: React.FC<Props> = ({ route, navigation }) => {
           />
 
           <Input
-            label="Author *"
-            value={editAuthor}
-            onChangeText={(a) => {
-              setEditAuthor(a);
+            label="Director *"
+            value={editDirector}
+            onChangeText={(d) => {
+              setEditDirector(d);
               setErrorMessage('');
             }}
-            error={editErrors.author}
-            testID="edit-author-input"
+            error={editErrors.director}
+            testID="edit-director-input"
           />
 
           {/* Genre Selection */}
@@ -412,54 +412,54 @@ export const DetailScreen: React.FC<Props> = ({ route, navigation }) => {
         /* VIEW MODE */
         <View style={styles.card}>
           <View style={styles.headerRow}>
-            <Text style={styles.detailTitle}>{book.title}</Text>
+            <Text style={styles.detailTitle}>{movie.title}</Text>
             <TouchableOpacity
               onPress={handleToggleFavorite}
               style={styles.favoriteButton}
               testID="detail-favorite-toggle"
             >
-              <Text style={styles.starIcon}>{book.favorite ? '★' : '☆'}</Text>
+              <Text style={styles.starIcon}>{movie.favorite ? '★' : '☆'}</Text>
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.detailAuthor}>by {book.author}</Text>
+          <Text style={styles.detailDirector}>Directed by {movie.director}</Text>
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Genre:</Text>
-            <Text style={styles.infoValue}>{book.genre}</Text>
+            <Text style={styles.infoValue}>{movie.genre}</Text>
           </View>
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Status:</Text>
-            <Text style={styles.infoValue}>{book.status}</Text>
+            <Text style={styles.infoValue}>{movie.status}</Text>
           </View>
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Rating:</Text>
             <Text style={styles.infoValue}>
-              {book.rating !== null && book.rating !== undefined ? `${book.rating} / 5` : 'Not rated'}
+              {movie.rating !== null && movie.rating !== undefined ? `${movie.rating} / 5` : 'Not rated'}
             </Text>
           </View>
 
           <View style={styles.notesContainer}>
             <Text style={styles.infoLabel}>Notes:</Text>
             <Text style={styles.notesValue}>
-              {book.notes ? book.notes : 'No notes added.'}
+              {movie.notes ? movie.notes : 'No notes added.'}
             </Text>
           </View>
 
           <View style={styles.actionButtons}>
             <Button
-              title="Edit Book"
+              title="Edit Movie"
               onPress={handleStartEdit}
               variant="primary"
-              testID="edit-book-button"
+              testID="edit-movie-button"
             />
             <Button
-              title="Delete Book"
+              title="Delete Movie"
               onPress={handleDelete}
               variant="danger"
-              testID="delete-book-button"
+              testID="delete-movie-button"
             />
           </View>
         </View>
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: '#f59e0b',
   },
-  detailAuthor: {
+  detailDirector: {
     fontSize: 16,
     color: '#6c757d',
     marginBottom: 20,
@@ -627,4 +627,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-

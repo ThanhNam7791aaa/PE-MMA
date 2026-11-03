@@ -12,7 +12,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.container}>
       {/* Header with Login and Register buttons */}
       <Header
-        title="BookShelf"
+        title="CineList"
         showAuthButtons={true}
         onLoginPress={() => navigation.navigate('Login')}
         onRegisterPress={() => navigation.navigate('Register')}
@@ -22,33 +22,33 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
         {/* Title and App Description */}
         <View style={styles.heroSection}>
           <Text style={styles.title} testID="home-title">
-            BookShelf
+            CineList
           </Text>
           <Text style={styles.description}>
-            Your personal private book tracker. Organize what you read, keep track of your progress, and rate your favorites easily.
+            Your personal private movie watchlist. Track what you watch, organize by genre and status, and rate your favorites easily.
           </Text>
         </View>
 
         {/* Feature Cards (at least 3 cards) */}
         <View style={styles.featuresContainer}>
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>📚 Track your books</Text>
+            <Text style={styles.cardTitle}>🎬 Track what you watch</Text>
             <Text style={styles.cardText}>
-              Keep all your books organized in one place with details like genre, rating, and personal notes.
+              Keep all your movies organized in one place with details like genre, rating, director, and personal notes.
             </Text>
           </View>
 
           <View style={styles.card}>
             <Text style={styles.cardTitle}>🔄 Sort by status</Text>
             <Text style={styles.cardText}>
-              Categorize your reading journey into To Read, Reading, and Finished with instant filtering.
+              Categorize your watchlist into Plan to Watch, Watching, and Watched with instant filtering.
             </Text>
           </View>
 
           <View style={styles.card}>
             <Text style={styles.cardTitle}>⭐ Rate your favorites</Text>
             <Text style={styles.cardText}>
-              Mark your top reads as favorites and give whole-number ratings from 0 to 5.
+              Mark your top movies as favorites and give whole-number ratings from 0 to 5.
             </Text>
           </View>
         </View>
@@ -123,4 +123,3 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
 });
-

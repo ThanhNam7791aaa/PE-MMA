@@ -1,44 +1,44 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Book, BookStatus } from '../types';
+import { Movie, MovieStatus } from '../types';
 
 interface SummaryProps {
-  books: Book[];
+  movies: Movie[];
 }
 
-export const Summary: React.FC<SummaryProps> = ({ books }) => {
-  const totalCount = books.length;
-  const favoriteCount = books.filter((b) => b.favorite).length;
+export const Summary: React.FC<SummaryProps> = ({ movies }) => {
+  const totalCount = movies.length;
+  const favoriteCount = movies.filter((m) => m.favorite).length;
 
   // Count by status
-  const statusCounts: Record<BookStatus, number> = {
-    'To Read': 0,
-    'Reading': 0,
-    'Finished': 0,
+  const statusCounts: Record<MovieStatus, number> = {
+    'Plan to Watch': 0,
+    'Watching': 0,
+    'Watched': 0,
   };
 
-  books.forEach((b) => {
-    if (b.status in statusCounts) {
-      statusCounts[b.status] += 1;
+  movies.forEach((m) => {
+    if (m.status in statusCounts) {
+      statusCounts[m.status] += 1;
     }
   });
 
-  // Tie breaker order: To Read (0), Reading (1), Finished (2)
-  const tieOrder: Record<BookStatus, number> = {
-    'To Read': 0,
-    'Reading': 1,
-    'Finished': 2,
+  // Tie breaker order: Plan to Watch (0), Watching (1), Watched (2)
+  const tieOrder: Record<MovieStatus, number> = {
+    'Plan to Watch': 0,
+    'Watching': 1,
+    'Watched': 2,
   };
 
   // Only include statuses that appear (count > 0)
-  const breakdown = (Object.keys(statusCounts) as BookStatus[])
+  const breakdown = (Object.keys(statusCounts) as MovieStatus[])
     .filter((status) => statusCounts[status] > 0)
     .sort((a, b) => {
       // Sort by count descending
       if (statusCounts[b] !== statusCounts[a]) {
         return statusCounts[b] - statusCounts[a];
       }
-      // Equal counts: To Read, then Reading, then Finished
+      // Equal counts: Plan to Watch, then Watching, then Watched
       return tieOrder[a] - tieOrder[b];
     });
 
@@ -47,8 +47,8 @@ export const Summary: React.FC<SummaryProps> = ({ books }) => {
       <Text style={styles.title}>Summary</Text>
       <View style={styles.statsRow}>
         <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Total Books</Text>
-          <Text style={styles.statValue} testID="book-count">
+          <Text style={styles.statLabel}>Total Movies</Text>
+          <Text style={styles.statValue} testID="movie-count">
             {totalCount}
           </Text>
         </View>
@@ -134,4 +134,3 @@ const styles = StyleSheet.create({
     color: '#333',
   },
 });
-

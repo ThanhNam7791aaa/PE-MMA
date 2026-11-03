@@ -1,7 +1,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /books/{bookId} {
+    match /movies/{movieId} {
       
       // Check if user is authenticated
       function isAuthenticated() {
@@ -13,41 +13,40 @@ service cloud.firestore {
         return isAuthenticated() && request.auth.uid == userId;
       }
 
-      // Validate all required constraints for a book document
-      function isValidBook(data) {
+      // Validate all required constraints for a movie document
+      function isValidMovie(data) {
         return data.userId is string 
           && data.userId == request.auth.uid
           && data.title is string 
           && data.title.trim().size() > 0 
           && data.title.size() <= 100
-          && data.author is string 
-          && data.author.trim().size() > 0 
-          && data.author.size() <= 60
-          && data.genre in ['Fiction', 'Non-Fiction', 'Academic', 'Other']
-          && data.status in ['To Read', 'Reading', 'Finished']
+          && data.director is string 
+          && data.director.trim().size() > 0 
+          && data.director.size() <= 60
+          && data.genre in ['Action', 'Comedy', 'Drama', 'Horror']
+          && data.status in ['Plan to Watch', 'Watching', 'Watched']
           && (!('rating' in data) || data.rating == null || (data.rating is int && data.rating >= 0 && data.rating <= 5))
           && (!('favorite' in data) || data.favorite is bool)
           && (!('notes' in data) || data.notes == null || (data.notes is string && data.notes.size() <= 300));
       }
 
-      // Logged-in users can only read their own books; visitors cannot read
+      // Logged-in users can only read their own movies; visitors cannot read
       allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
 
-      // Logged-in users can only create books where userId is their own UID, and data is valid
+      // Logged-in users can only create movies where userId is their own UID, and data is valid
       allow create: if isAuthenticated() 
                     && request.resource.data.userId == request.auth.uid 
-                    && isValidBook(request.resource.data);
+                    && isValidMovie(request.resource.data);
 
-      // Logged-in users can only update their own books
+      // Logged-in users can only update their own movies
       allow update: if isAuthenticated() 
                     && resource.data.userId == request.auth.uid
                     && request.resource.data.userId == request.auth.uid 
-                    && isValidBook(request.resource.data);
+                    && isValidMovie(request.resource.data);
 
-      // Logged-in users can only delete their own books
+      // Logged-in users can only delete their own movies
       allow delete: if isAuthenticated() 
                     && resource.data.userId == request.auth.uid;
     }
   }
 }
-
