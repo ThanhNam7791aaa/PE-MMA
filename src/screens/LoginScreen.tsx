@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { Input } from '../components/Input';
@@ -11,6 +11,14 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 const validateEmail = (email: string): boolean => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email.trim());
+};
+
+const showAlert = (title: string, message: string) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
 };
 
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
@@ -51,9 +59,12 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     setLoading(true);
     try {
       await loginUser(email, password);
+      showAlert('Thành công', 'Đăng nhập thành công!');
       // Navigation to List is automatically handled by AuthContext state change in AppNavigator
     } catch (error: any) {
-      setAuthError(error.message || 'Login failed');
+      const msg = error.message || 'Login failed';
+      setAuthError(msg);
+      showAlert('Đăng nhập thất bại', msg);
     } finally {
       setLoading(false);
     }
@@ -159,4 +170,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-

@@ -6,8 +6,10 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 
-export const registerUser = async (email: string, password: string):Promise<User> => {
+export const registerUser = async (email: string, password: string): Promise<User> => {
   const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+  // Sign out after registration so the user stays on Register screen to see the success banner
+  await signOut(auth);
   return userCredential.user;
 };
 
@@ -19,4 +21,3 @@ export const loginUser = async (email: string, password: string): Promise<User> 
 export const logoutUser = async (): Promise<void> => {
   await signOut(auth);
 };
-

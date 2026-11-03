@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { Input } from '../components/Input';
@@ -11,6 +11,14 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 const validateEmail = (email: string): boolean => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email.trim());
+};
+
+const showAlert = (title: string, message: string) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
 };
 
 export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
@@ -67,8 +75,11 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     try {
       await registerUser(email, password);
       setSuccessMessage('Registration successful');
+      showAlert('Thành công', 'Đăng ký tài khoản thành công! Vui lòng đăng nhập.');
     } catch (error: any) {
-      setAuthError(error.message || 'Registration failed');
+      const msg = error.message || 'Registration failed';
+      setAuthError(msg);
+      showAlert('Đăng ký thất bại', msg);
     } finally {
       setLoading(false);
     }
@@ -143,6 +154,15 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         testID="register-submit-button"
       />
 
+      {!!successMessage && (
+        <Button
+          title="Go to Sign In"
+          onPress={() => navigation.navigate('Login')}
+          variant="outline"
+          style={{ marginTop: 10 }}
+        />
+      )}
+
       <TouchableOpacity
         style={styles.switchRow}
         onPress={() => navigation.navigate('Login')}
@@ -210,4 +230,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
